@@ -1,12 +1,8 @@
 {
     "workloadMapping": {
-        "Azure": {
-            "Virtual Machine Scale Sets": "microsoft.compute/virtualmachinescalesets",
-            "SQL Virtual machine": "microsoft.sqlvirtualmachine/sqlvirtualmachines",
-            "Virtual Machine": "microsoft.compute/virtualmachines",
-            "App Service": "microsoft.web/sites",
-            "App Service Plan": "microsoft.web/serverfarms"
-        },
+        "Azure": {          
+            "App Service": "microsoft.web/sites"
+                    },
         "AWS": {
             "EC2 Instances": "AWS::EC2::Instance",
             "RDS Aurora Cluster": "AWS::RDS::DBCluster::Aurora",
