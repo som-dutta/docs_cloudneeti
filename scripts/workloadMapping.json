@@ -1,7 +1,8 @@
 {
     "workloadMapping": {
         "Azure": {          
-            "App Service": "microsoft.web/sites"
+            "App Service": "microsoft.web/sites",
+            "Virtual Machine": "microsoft.compute/virtualmachines"
                     },
         "AWS": {
             "EC2 Instances": "AWS::EC2::Instance",
