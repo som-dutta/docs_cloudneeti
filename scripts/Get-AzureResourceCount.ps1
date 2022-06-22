@@ -68,7 +68,7 @@ If ($AzureContextSubscriptionId -ne $SubscriptionId) {
     }
 }
 
-# Read Zscaler CSPM workload Mapping
+# Read Zscaler CSPM workload Mapping for VM
 Write-host "Fetching Zscaler CSPM workload Mapping"
 try {
     $workloadMapping = Invoke-WebRequest -uri "https://raw.githubusercontent.com/som-dutta/docs_cloudneeti/master/scripts/workloadMapping.json" | ConvertFrom-Json
@@ -78,9 +78,6 @@ catch [Exception] {
     write-host "Error occurred while fetching workload mapping" -ForegroundColor Red
     Write-Error $_ -ErrorAction Stop
 }
-
-Write-Host "Adding Resource Graph Extension"
-az extension add --name resource-graph
 
 # Prepare Filter Query
 $query_filter = ""
@@ -95,13 +92,21 @@ $query_filter = $query_filter.Substring(0,$query_filter.Length-3)
 Write-Host "Collecting total workloads count present in $subscriptionId subscription"
 $workloadCount = (az graph query -q "where $query_filter | summarize count()" --subscriptions $subscriptionId --output json | ConvertFrom-Json | Select-Object -Expand data).count_
 
+$workloadCount1 = (az graph query -q "where type=='microsoft.web/sites' | summarize count()" --subscriptions $subscriptionId --output json | ConvertFrom-Json | Select-Object -Expand data).count_
+
+$workloadCount1 = $workloadCount1/5
+$workloadCount1 = [int]$workloadCount1
+
+$workloadCount = $workloadCount + $workloadCount1  
+
 # All Resources
 Write-Host "Collecting all resources count present in $subscriptionId subscription"
 $resourceCount = (az graph query -q "summarize count()" --subscriptions $subscriptionId --output json | ConvertFrom-Json | Select-Object -Expand data).count_
 
 # Processing Workloads
 Write-Host "Collecting workload details present in $subscriptionId subscription"
-$query = "summarize count() by type | where " + $query_filter + "| project resource=type , total=count_ | order by total desc" 
+$query = "summarize count() by type | where "+ $query_filter + " or type=='microsoft.web/sites'| project resource=type , total=count_ | order by total desc" 
+
 $workloadDetails = az graph query -q $query --subscriptions $subscriptionId --output json | ConvertFrom-Json | Select-Object -Expand data
 
 # Collect Resource Distribution
