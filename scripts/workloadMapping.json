@@ -1,9 +1,23 @@
 {
     "workloadMapping": {
-        "Azure": {          
-            "Virtual Machine": "microsoft.compute/virtualmachines"
-           
-                    },
+        "Azure": {
+            "Virtual Machine Scale Sets": "microsoft.compute/virtualmachinescalesets",
+            "SQL Virtual machine": "microsoft.sqlvirtualmachine/sqlvirtualmachines",
+            "Virtual Machine": "microsoft.compute/virtualmachines",
+            "App Service": "microsoft.web/sites",
+            "App Service Plan": "microsoft.web/serverfarms",
+            "Service Fabric": "microsoft.servicefabric/clusters",
+            "Cosmos DB": "microsoft.documentdb/databaseAccounts",
+            "Database for Maria DB": "microsoft.dbformariadb/servers",
+            "Database for MySQL": "microsoft.dbformysql/servers ",
+            "Database for PostgreSQL": "microsoft.dbforpostgresql/servers",
+            "SQL Database": "microsoft.sql/servers/databases",
+            "HDInsight": "microsoft.hdinsight/clusters",
+            "Load Balancer": "microsoft.network/loadbalancers",
+            "Application Gateway": "microsoft.network/applicationgateways",
+            "Kubernetes Service (AKS)": "microsoft.containerservice/managedclusters",
+            "Cache for Redis": "microsoft.cache/redis"
+        },
         "AWS": {
             "EC2 Instances": "AWS::EC2::Instance",
             "RDS Aurora Cluster": "AWS::RDS::DBCluster::Aurora",
@@ -35,7 +49,15 @@
         },
         "GCP": {
             "Compute Engine Instance": "compute.googleapis.com/Instance",
-            "App Engine Service": "appengine.googleapis.com/Service"            
+            "Bigquery Dataset": "bigquery.googleapis.com/Dataset",
+            "SQL Instance": "sqladmin.googleapis.com/Instance",
+            "GKE Cluster": "container.googleapis.com/Cluster",
+            "Spanner Instance": "spanner.googleapis.com/Instance",
+            "Datafusion Instance": "datafusion.googleapis.com/Instance",
+            "Dataproc Cluster": "dataproc.googleapis.com/Cluster",
+            "Bigtable Instance": "bigtableadmin.googleapis.com/Instance",
+            "App Engine Service": "appengine.googleapis.com/Service",
+            "Compute Target Instance": "compute.googleapis.com/TargetInstance"
         }
     }
 }
