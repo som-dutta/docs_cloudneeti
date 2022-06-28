@@ -58,6 +58,7 @@ exit_abnormal() {
 
 #Check the number of arguments. If none are passed, print usage and exit.
 NUMARGS=$#
+
 if [ $NUMARGS -ne 2 ]; then
   usage
   exit 1
@@ -98,7 +99,7 @@ validate_parameters()
 
         # Validate Organization Id
         echo "Validating Organization ID"
-        VALID_ORG_ID=$(gcloud organizations list --filter=$GCP_ORGANIZATION_ID | awk 'NR > 1 {print $2}')
+        VALID_ORG_ID=$(gcloud organizations list --filter=$GCP_ORGANIZATION_ID | awk 'NR == 2 {print $2}')
         if [[ $VALID_ORG_ID != $GCP_ORGANIZATION_ID ]]; then
                 echo -e "${RED}Incorrect Organization ID $GCP_ORGANIZATION_ID provided${NC}"
                 echo -e "${YELLOW}Please provide the valid Organization ID and Continue..${NC}"
@@ -117,7 +118,7 @@ load_workloads()
     WorkloadMapping="https://raw.githubusercontent.com/som-dutta/docs_cloudneeti/master/scripts/workloadMapping.json"
     # Load zcspm roles into array
     ZCSPM_WORKLOADS=$( curl -s $WorkloadMapping | jq -r .workloadMapping.GCP[] )
-    if [[ -z $ZCSPM_WORKLOADS ]]; then
+        if [[ -z $ZCSPM_WORKLOADS ]]; then
         echo -e "${RED}Failed to load the workload mapping${NC}"
         echo -e "Check Error message above and try again later"
         exit
@@ -127,6 +128,8 @@ load_workloads()
 # Declare the variable & array
 WORKLOAD_COUNT=0
 RESOURCE_COUNT=0
+WORKLOAD_FUNCTION_COUNT=0 #For gcp functions 
+WORKLOAD_FINAL_COUNT=0 #For new workload count for ZPC
 Workload_distribution=()
 Resource_distribution=()
 
@@ -139,16 +142,32 @@ get_gcp_asset_count()
     do
         for workload in ${ZCSPM_WORKLOADS[@]}
         do
-            if [[ $workload == $asset ]]; then
+            if [[ $workload == "$asset" ]]; then
                 # Get the total workload count supported by zcspm
-                (( WORKLOAD_COUNT++ ))
-                Workload_distribution+=("$workload")
+                if [[ $workload = "cloudfunctions.googleapis.com/CloudFunction" ]]; then
+                    (( WORKLOAD_FUNCTION_COUNT++ ))
+                    Workload_distribution+=("$workload")
+                else
+                    (( WORKLOAD_COUNT++ ))
+                 Workload_distribution+=("$workload")
+                fi
             fi
         done
         # Get the total Resource count
         (( RESOURCE_COUNT++ ))
         Resource_distribution+=("$asset")
     done
+
+    if [[ $WORKLOAD_FUNCTION_COUNT = 0 ]]; then
+        WORKLOAD_FINAL_COUNT=$(($WORKLOAD_COUNT))
+    fi    
+    if [[ $WORKLOAD_FUNCTION_COUNT > 0 && $WORKLOAD_FUNCTION_COUNT < 5 ]]; then
+        WORKLOAD_FINAL_COUNT=$(($WORKLOAD_COUNT + 1))
+    fi
+    if [[ $WORKLOAD_FUNCTION_COUNT = 5 || $WORKLOAD_FUNCTION_COUNT > 5 ]]; then
+        WORKLOAD_FINAL_COUNT=$(awk -v var1=$WORKLOAD_FUNCTION_COUNT -v var2=$WORKLOAD_COUNT 'BEGIN { printf("%.0f\n", var1/5 + var2); }')
+        #WORKLOAD_FINAL_COUNT=$(($WORKLOAD_FUNCTION_COUNT / 5 + $WORKLOAD_COUNT))
+    fi
 
     # get only active Projects & Folders and append to list
     for asset in $(gcloud beta asset list $ASSET_LOAD_OPTION $ID --content-type=resource --asset-types=cloudresourcemanager.googleapis.com.* --filter=resource.data.lifecycleState=ACTIVE --format="value(assetType)")
@@ -184,5 +203,5 @@ echo -e ""
 
 echo -e "${GREEN}Summary:${NC}"
 ############################################
-echo -e "   ""Zscaler CSPM Supported Total Workloads : $(($WORKLOAD_COUNT))"
+echo -e "   ""Zscaler CSPM Supported Total Workloads : $(($WORKLOAD_FINAL_COUNT))"
 echo -e "   ""Total Resources : $(($RESOURCE_COUNT))"
